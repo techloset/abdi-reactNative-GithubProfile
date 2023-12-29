@@ -72,18 +72,22 @@ const HomeScreen = ({navigation}) => {
 
   const {loading, error, data} = useQuery(FETCH_USER_DATA, {
     variables: {username: `user:${searchQuery}`},
-    skip: !searchQuery,
+    skip: !searchQuery.trim(), // Skip if searchQuery is empty or contains only whitespaces
   });
 
   // Update the state with the fetched data
   useEffect(() => {
     if (data) {
       setUserData(data.search.edges[0]?.node);
+      navigation.navigate('User', {
+        userData: data.search.edges[0]?.node,
+      });
     }
     if (!data) {
       setUserData(null);
     }
-  }, [data]);
+  }, [data, navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar translucent backgroundColor="rgba(0,0,0,0)" />
@@ -100,10 +104,8 @@ const HomeScreen = ({navigation}) => {
       />
 
       {loading && <Text>Loading...</Text>}
-      {error && (
-        <Text style={styles.errorText}>User not found. Please try again.</Text>
-      )}
-      {searchQuery !== '' && !loading && !data && (
+      {error && <Text style={styles.errorText}>error</Text>}
+      {searchQuery !== '' && error && (
         <Text style={styles.errorText}>User not found. Please try again.</Text>
       )}
 

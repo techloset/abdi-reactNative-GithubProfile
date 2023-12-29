@@ -5,7 +5,7 @@ import {
 } from '@apollo/client';
 
 const apiUrl = 'https://api.github.com/graphql';
-const githubToken = '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';
+const githubToken = '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';
 
 const client = new ApolloClient({
   uri: apiUrl,
