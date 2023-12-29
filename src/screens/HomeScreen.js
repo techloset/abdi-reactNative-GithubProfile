@@ -79,9 +79,6 @@ const HomeScreen = ({navigation}) => {
   useEffect(() => {
     if (data) {
       setUserData(data.search.edges[0]?.node);
-      navigation.navigate('User', {
-        userData: data.search.edges[0]?.node,
-      });
     }
     if (!data) {
       setUserData(null);

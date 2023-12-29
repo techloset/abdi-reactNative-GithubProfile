@@ -19,16 +19,6 @@ const {widthPixel, fontPixel, pixelSizeHorizontal} = Ratio;
 const UserScreen = ({navigation, route}) => {
   const {userData} = route.params;
 
-  const [readMore, setReadMore] = useState(false);
-
-  const repositories = userData.repositories.edges;
-
-  const readmeRepo = repositories.find(
-    repo => repo.node.name === `${userData.login}`,
-  );
-
-  const readme = readmeRepo.node.object.text;
-
   return (
     <>
       <Header title={userData.name} />
@@ -57,24 +47,6 @@ const UserScreen = ({navigation, route}) => {
               </Text>
             </View>
           </View>
-
-          {/* Readme */}
-          <Text style={styles.sectionHeader}>Readme:</Text>
-          <TouchableOpacity
-            onPress={() => setReadMore(!readMore)}
-            style={[
-              readMore === false
-                ? styles.readme_conatiner
-                : styles.readme_conatiner1,
-            ]}>
-            <Markdown
-              markdownit={MarkdownIt({typographer: true}).disable([
-                'link',
-                'image',
-              ])}>
-              {readme}
-            </Markdown>
-          </TouchableOpacity>
 
           {/* repos */}
           <Text style={styles.sectionHeader}>Repositories:</Text>
