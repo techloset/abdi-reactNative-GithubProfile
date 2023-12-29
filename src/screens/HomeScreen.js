@@ -8,18 +8,22 @@ import {
   StatusBar,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import {useQuery, gql} from '@apollo/client';
 import GithubIcon from '../assets/images/github.svg';
 import FollowIcon from '../assets/images/follow.svg';
 import {COLOR, TEXT} from '../styles/GlobalStyles';
 import Ratio from '../styles/Ratio';
+import {client} from '../context/AppoloClient';
+import Btn from '../components/Btn';
 
 const {widthPixel, pixelSizeHorizontal} = Ratio;
 
 const HomeScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userData, setUserData] = useState(null);
+  const [userError, setUserError] = useState(null);
 
   const FETCH_USER_DATA = gql`
     query SearchUser($username: String!) {
@@ -72,10 +76,10 @@ const HomeScreen = ({navigation}) => {
 
   const {loading, error, data} = useQuery(FETCH_USER_DATA, {
     variables: {username: `user:${searchQuery}`},
-    skip: !searchQuery.trim(), // Skip if searchQuery is empty or contains only whitespaces
+    skip: true,
   });
 
-  // Update the state with the fetched data
+  // Update the state with the fetched data when data changes
   useEffect(() => {
     if (data) {
       setUserData(data.search.edges[0]?.node);
@@ -83,7 +87,29 @@ const HomeScreen = ({navigation}) => {
     if (!data) {
       setUserData(null);
     }
-  }, [data, navigation]);
+  }, [data]);
+
+  const handleFetchData = async () => {
+    try {
+      // Clear the previous error
+      setUserError(null);
+
+      const result = await client.query({
+        query: FETCH_USER_DATA,
+        variables: {username: `user:${searchQuery}`},
+      });
+
+      if (result.data.search.edges[0]?.node) {
+        setUserData(result.data.search.edges[0].node);
+      } else {
+        setUserError('No search results found');
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setUserError('An error occurred while fetching data');
+      setUserData(null);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,14 +126,19 @@ const HomeScreen = ({navigation}) => {
         onChangeText={text => setSearchQuery(text)}
       />
 
-      {loading && <Text>Loading...</Text>}
-      {error && <Text style={styles.errorText}>error</Text>}
-      {searchQuery !== '' && error && (
-        <Text style={styles.errorText}>User not found. Please try again.</Text>
-      )}
+      {loading && <ActivityIndicator />}
+      {userError && <Text style={styles.errorText}>{userError}</Text>}
+
+      <Btn
+        onPress={handleFetchData}
+        text="Fetch User Data"
+        disabled={loading}
+        color={COLOR.white}
+        btnColor={COLOR.blue}
+      />
 
       {/* Render data when available */}
-      {userData?.name && (
+      {userData && (
         <TouchableOpacity
           onPress={() =>
             navigation.navigate('User', {
@@ -142,6 +173,14 @@ const HomeScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
+  button: {
+    marginTop: pixelSizeHorizontal(10),
+    padding: pixelSizeHorizontal(8),
+    backgroundColor: COLOR.primary,
+    borderRadius: pixelSizeHorizontal(8),
+    color: COLOR.white,
+    textAlign: 'center',
+  },
   image: {
     width: widthPixel(50),
     height: pixelSizeHorizontal(50),
@@ -167,6 +206,8 @@ const styles = StyleSheet.create({
     borderRadius: pixelSizeHorizontal(20),
     borderWidth: pixelSizeHorizontal(1),
     borderColor: COLOR.icon_bg_clr,
+    marginBottom: pixelSizeHorizontal(10),
+    marginTop: pixelSizeHorizontal(10),
   },
   container: {
     paddingHorizontal: pixelSizeHorizontal(16),

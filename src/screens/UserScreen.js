@@ -12,7 +12,6 @@ import {COLOR, TEXT} from '../styles/GlobalStyles';
 import Ratio from '../styles/Ratio';
 import Header from '../components/Header';
 import FollowIcon from '../assets/images/follow.svg';
-import Markdown, {MarkdownIt} from 'react-native-markdown-display';
 
 const {widthPixel, fontPixel, pixelSizeHorizontal} = Ratio;
 
