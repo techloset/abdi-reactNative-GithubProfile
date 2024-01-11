@@ -12,6 +12,7 @@ import {COLOR, TEXT} from '../styles/GlobalStyles';
 import Ratio from '../styles/Ratio';
 import Header from '../components/Header';
 import FollowIcon from '../assets/images/follow.svg';
+import SCREENS from '../libs/SCREENS';
 
 const {widthPixel, fontPixel, pixelSizeHorizontal} = Ratio;
 
@@ -30,18 +31,18 @@ const UserScreen = ({navigation, route}) => {
                 style={styles.image}
                 source={{uri: `${userData.avatarUrl}`}}
               />
-              <View style={styles.userInfo_Text_container}>
-                <Text style={TEXT.title}>Name: {userData.name}</Text>
-                <Text style={TEXT.title}>Username: {userData.login}</Text>
-                <Text style={TEXT.title}>{userData.bio}</Text>
+              <View>
+                <Text style={[TEXT.title]}>{userData.name}</Text>
+                <Text style={TEXT.cardText}>@{userData.login}</Text>
+                <Text style={TEXT.cardText}>{userData.bio}</Text>
               </View>
             </View>
             <View style={styles.userInfo_follow_container}>
               <FollowIcon />
-              <Text style={TEXT.title}>
+              <Text style={TEXT.cardText}>
                 Followers: {userData.followers.totalCount}
               </Text>
-              <Text style={TEXT.title}>
+              <Text style={TEXT.cardText}>
                 Following: {userData.following.totalCount}
               </Text>
             </View>
@@ -54,14 +55,17 @@ const UserScreen = ({navigation, route}) => {
               key={index}
               style={styles.repository}
               onPress={() =>
-                navigation.navigate('Repo', {
+                navigation.navigate(SCREENS.REPO_INFO, {
                   userName: repo.node.owner,
                   repoName: repo.node.name,
                 })
               }>
               <Text style={styles.text}>Name: {repo.node.name}</Text>
               <Text style={styles.text}>
-                Description: {repo.node.description}
+                Description:{' '}
+                {repo.node.description
+                  ? repo.node.description
+                  : 'No description'}
               </Text>
               <Text style={styles.text}>Stars: {repo.node.stargazerCount}</Text>
             </TouchableOpacity>
@@ -76,12 +80,9 @@ export default UserScreen;
 
 const styles = StyleSheet.create({
   image: {
-    width: widthPixel(50),
-    height: pixelSizeHorizontal(50),
-    borderRadius: widthPixel(50),
-  },
-  userInfo_Text_container: {
-    width: '50%',
+    width: widthPixel(60),
+    height: pixelSizeHorizontal(60),
+    borderRadius: widthPixel(60),
   },
   userInfo_follow_container: {
     flexDirection: 'row',
@@ -91,8 +92,8 @@ const styles = StyleSheet.create({
   },
   userInfo_container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: pixelSizeHorizontal(15),
   },
   userInfo_sContainer: {
     backgroundColor: COLOR.black,

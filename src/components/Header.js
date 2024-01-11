@@ -5,6 +5,7 @@ import GithubIcon from '../assets/images/github.svg';
 import {COLOR, TEXT} from '../styles/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
 import Ratio from '../styles/Ratio';
+import SCREENS from '../libs/SCREENS';
 const {widthPixel, fontPixel, pixelSizeHorizontal} = Ratio;
 
 const Header = ({title}) => {
@@ -19,7 +20,7 @@ const Header = ({title}) => {
         <BackIcon />
       </Pressable>
       <Text style={TEXT.heading_2}>{title}</Text>
-      <Pressable onPress={() => navigation.navigate('Home')}>
+      <Pressable onPress={() => navigation.navigate(SCREENS.HOME)}>
         <GithubIcon />
       </Pressable>
     </View>

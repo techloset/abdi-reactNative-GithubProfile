@@ -31,7 +31,6 @@ export const TEXT = {
     fontFamily: FONT_FAMILY.montserratBold,
     fontSize: fontPixel(24),
     color: COLOR.white,
-    fontWeight: 'bold',
     marginBottom: pixelSizeHorizontal(16),
   },
   faded: {
@@ -51,16 +50,15 @@ export const TEXT = {
     color: COLOR.white,
   },
   title: {
-    fontFamily: FONT_FAMILY.montserratSemiBold,
-    fontSize: fontPixel(12),
+    fontFamily: FONT_FAMILY.montserratBold,
+    fontSize: fontPixel(16),
     color: COLOR.white,
-    lineHeight: fontPixel(14),
     letterSpacing: fontPixel(-0.165),
   },
   cardText: {
     fontFamily: FONT_FAMILY.montserratMedium,
     fontSize: fontPixel(14),
-    color: COLOR.neutral,
+    color: COLOR.white,
   },
   alphaLogoText: {
     fontFamily: FONT_FAMILY.montserratBold,

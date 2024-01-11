@@ -18,7 +18,6 @@ const RepoScreen = ({navigation, route}) => {
   const {userName, repoName} = route.params;
 
   const [repo, setRepo] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const FETCH_REPO_DATA = gql`
@@ -36,7 +35,7 @@ const RepoScreen = ({navigation, route}) => {
     }
   `;
 
-  const {data} = useQuery(FETCH_REPO_DATA, {
+  const {data, loading} = useQuery(FETCH_REPO_DATA, {
     variables: {owner: userName.login, name: repoName},
     fetchPolicy: 'cache-and-network',
     onError: err => {
@@ -57,17 +56,17 @@ const RepoScreen = ({navigation, route}) => {
         {loading && <ActivityIndicator />}
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View style={styles.repo_container}>
-          <Text style={TEXT.title}>Name: {repo?.name}</Text>
+          <Text style={[TEXT.title, {alignSelf: 'center'}]}>{repo?.name}</Text>
           {repo?.description && (
-            <Text style={TEXT.title}>Description: {repo?.description}</Text>
+            <Text style={TEXT.cardText}>Description: {repo?.description}</Text>
           )}
           <View style={styles.star_container}>
             <StarIcon />
-            <Text style={TEXT.title}>: {repo?.stargazerCount}</Text>
+            <Text style={TEXT.cardText}>: {repo?.stargazerCount}</Text>
           </View>
-          <Text style={TEXT.title}>Owned By: {userName.__typename}</Text>
-          <Text style={TEXT.title}>ID: {userName.login}</Text>
-          <Text style={TEXT.title}>Name: {userName.name}</Text>
+          <Text style={TEXT.cardText}>Owned By: {userName.__typename}</Text>
+          <Text style={TEXT.cardText}>ID: {userName.login}</Text>
+          <Text style={TEXT.cardText}>Name: {userName.name}</Text>
           {repo?.object?.text && (
             <ScrollView>
               {repo && <Markdown style={styles}>{repo?.object?.text}</Markdown>}
@@ -91,8 +90,9 @@ const styles = StyleSheet.create({
     padding: pixelSizeHorizontal(16),
     gap: pixelSizeHorizontal(8),
   },
+
   heading1: {
-    fontSize: 32,
+    fontSize: 24,
     color: COLOR.white,
   },
   heading2: {
@@ -117,11 +117,9 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    color: COLOR.grey,
+    color: COLOR.white,
   },
-  link: {
-    color: COLOR.blue,
-  },
+  link: {color: 'red', textDecorationLine: 'underline'},
   container: {
     flex: 1,
     padding: 16,

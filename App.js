@@ -6,6 +6,8 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import UserScreen from './src/screens/UserScreen';
 import RepoScreen from './src/screens/RepoScreen';
 import {ApolloProvider, client} from './src/context/AppoloClient';
+import NAVIGATION from './src/libs/NAV';
+import SCREENS from './src/libs/SCREENS';
 const App = () => {
   const Stack = createNativeStackNavigator();
 
@@ -13,11 +15,17 @@ const App = () => {
     <ApolloProvider client={client}>
       <NavigationContainer>
         <Stack.Navigator
-          screenOptions={{headerShown: false}}
-          initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="User" component={UserScreen} />
-          <Stack.Screen name="Repo" component={RepoScreen} />
+          initialRouteName={SCREENS.HOME}
+          screenOptions={{headerShown: false}}>
+          {NAVIGATION.map((item, index) => {
+            return (
+              <Stack.Screen
+                key={index}
+                name={item.screenName}
+                component={item.component}
+              />
+            );
+          })}
         </Stack.Navigator>
       </NavigationContainer>
     </ApolloProvider>

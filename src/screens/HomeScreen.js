@@ -10,20 +10,54 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useQuery, gql} from '@apollo/client';
+import {gql} from '@apollo/client';
 import GithubIcon from '../assets/images/github.svg';
 import FollowIcon from '../assets/images/follow.svg';
 import {COLOR, TEXT} from '../styles/GlobalStyles';
 import Ratio from '../styles/Ratio';
+import _ from 'lodash';
 import {client} from '../context/AppoloClient';
-import Btn from '../components/Btn';
-
+import SCREENS from '../libs/SCREENS';
 const {widthPixel, pixelSizeHorizontal} = Ratio;
+
+const debouncedHandleFetchData = _.debounce(async function (
+  query,
+  setLoading,
+  setError,
+  FETCH_USER_DATA,
+  setUserData,
+) {
+  try {
+    setLoading(true);
+    setError(null);
+
+    const result = await client.query({
+      query: FETCH_USER_DATA,
+      variables: {username: `user:${query}`},
+    });
+
+    if (result.data.search.edges[0]?.node) {
+      setUserData(result.data.search.edges[0].node);
+    }
+    if (!result.data.search.edges[0]?.node.login) {
+      setError('No search results found');
+      setUserData(null);
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    setError('An error occurred while fetching data');
+    setUserData(null);
+  } finally {
+    setLoading(false);
+  }
+},
+500);
 
 const HomeScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userData, setUserData] = useState(null);
-  const [userError, setUserError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const FETCH_USER_DATA = gql`
     query SearchUser($username: String!) {
@@ -59,11 +93,6 @@ const HomeScreen = ({navigation}) => {
                         name
                       }
                     }
-                    object(expression: "main:README.md") {
-                      ... on Blob {
-                        text
-                      }
-                    }
                   }
                 }
               }
@@ -74,42 +103,18 @@ const HomeScreen = ({navigation}) => {
     }
   `;
 
-  const {loading, error, data} = useQuery(FETCH_USER_DATA, {
-    variables: {username: `user:${searchQuery}`},
-    skip: true,
-  });
-
-  // Update the state with the fetched data when data changes
   useEffect(() => {
-    if (data) {
-      setUserData(data.search.edges[0]?.node);
-    }
-    if (!data) {
+    debouncedHandleFetchData(
+      searchQuery,
+      setLoading,
+      setError,
+      FETCH_USER_DATA,
+      setUserData,
+    );
+    if (!searchQuery) {
       setUserData(null);
     }
-  }, [data]);
-
-  const handleFetchData = async () => {
-    try {
-      // Clear the previous error
-      setUserError(null);
-
-      const result = await client.query({
-        query: FETCH_USER_DATA,
-        variables: {username: `user:${searchQuery}`},
-      });
-
-      if (result.data.search.edges[0]?.node) {
-        setUserData(result.data.search.edges[0].node);
-      } else {
-        setUserError('No search results found');
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setUserError('An error occurred while fetching data');
-      setUserData(null);
-    }
-  };
+  }, [searchQuery]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -127,21 +132,13 @@ const HomeScreen = ({navigation}) => {
       />
 
       {loading && <ActivityIndicator />}
-      {userError && <Text style={styles.errorText}>{userError}</Text>}
-
-      <Btn
-        onPress={handleFetchData}
-        text="Fetch User Data"
-        disabled={loading}
-        color={COLOR.white}
-        btnColor={COLOR.blue}
-      />
+      {error && searchQuery && <Text style={styles.errorText}>{error}</Text>}
 
       {/* Render data when available */}
-      {userData && (
+      {userData?.login && (
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('User', {
+            navigation.navigate(SCREENS.USER_INFO, {
               userData: userData,
             })
           }
@@ -151,18 +148,20 @@ const HomeScreen = ({navigation}) => {
               style={styles.image}
               source={{uri: `${userData.avatarUrl}`}}
             />
-            <View style={styles.userInfo_Text_container}>
-              <Text style={TEXT.title}>Name: {userData.name}</Text>
-              <Text style={TEXT.title}>Username: {userData.login}</Text>
-              <Text style={TEXT.title}>{userData.bio}</Text>
+            <View>
+              <Text style={[TEXT.title]}>{userData.name}</Text>
+              <Text style={TEXT.cardText}>@{userData.login}</Text>
+              <Text style={[TEXT.cardText, {width: widthPixel(200)}]}>
+                {userData.bio}
+              </Text>
             </View>
           </View>
           <View style={styles.userInfo_follow_container}>
             <FollowIcon />
-            <Text style={TEXT.title}>
+            <Text style={TEXT.cardText}>
               Followers: {userData.followers.totalCount}
             </Text>
-            <Text style={TEXT.title}>
+            <Text style={TEXT.cardText}>
               Following: {userData.following.totalCount}
             </Text>
           </View>
@@ -173,21 +172,10 @@ const HomeScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  button: {
-    marginTop: pixelSizeHorizontal(10),
-    padding: pixelSizeHorizontal(8),
-    backgroundColor: COLOR.primary,
-    borderRadius: pixelSizeHorizontal(8),
-    color: COLOR.white,
-    textAlign: 'center',
-  },
   image: {
-    width: widthPixel(50),
-    height: pixelSizeHorizontal(50),
-    borderRadius: widthPixel(50),
-  },
-  userInfo_Text_container: {
-    width: '50%',
+    width: widthPixel(60),
+    height: pixelSizeHorizontal(60),
+    borderRadius: widthPixel(60),
   },
   userInfo_follow_container: {
     flexDirection: 'row',
@@ -197,8 +185,8 @@ const styles = StyleSheet.create({
   },
   userInfo_container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: pixelSizeHorizontal(15),
   },
   userInfo_sContainer: {
     backgroundColor: COLOR.black,
@@ -206,8 +194,6 @@ const styles = StyleSheet.create({
     borderRadius: pixelSizeHorizontal(20),
     borderWidth: pixelSizeHorizontal(1),
     borderColor: COLOR.icon_bg_clr,
-    marginBottom: pixelSizeHorizontal(10),
-    marginTop: pixelSizeHorizontal(10),
   },
   container: {
     paddingHorizontal: pixelSizeHorizontal(16),
